@@ -1,10 +1,12 @@
 <?xml version="1.0"?>
 
 <project name="TerrainLOS Radio Medium" default="jar" basedir=".">
+  <property environment="env"/>
+  <property name="env.COOJA_PATH" value="${user.home}/contiki/tools/cooja"/>
   <property name="java" location="java"/>
   <property name="build" location="build"/>
   <property name="lib" location="lib"/>
-  <property name="cooja" location="${user.home}/contiki/tools/cooja"/>
+  <property name="cooja" location="${env.COOJA_PATH}"/>
 
   <target name="init">
     <tstamp/>
@@ -34,11 +36,11 @@
       </manifest>
     </jar>
   </target>
-  
+
   <target name="jar_cooja">
     <ant antfile="build.xml" dir="${cooja}" target="jar_cooja" inheritAll="false"/>
   </target>
-  
+
   <target name="test" depends="jar">
     <ant antfile="build.xml" dir="${cooja}" target="run_nogui" inheritAll="false">
       <property name="args" value="${basedir}/tests/terrainlos_simple_well_test.csc"/>
