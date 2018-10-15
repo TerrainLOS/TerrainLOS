@@ -45,31 +45,31 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 import org.jdom.output.XMLOutputter;
 
-import se.sics.cooja.ClassDescription;
-import se.sics.cooja.Mote;
-import se.sics.cooja.RadioConnection;
-import se.sics.cooja.SimEventCentral.MoteCountListener;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.interfaces.Position;
-import se.sics.cooja.interfaces.Radio;
-import se.sics.cooja.plugins.Visualizer;
+import org.contikios.cooja.ClassDescription;
+import org.contikios.cooja.Mote;
+import org.contikios.cooja.RadioConnection;
+import org.contikios.cooja.SimEventCentral.MoteCountListener;
+import org.contikios.cooja.Simulation;
+import org.contikios.cooja.interfaces.Position;
+import org.contikios.cooja.interfaces.Radio;
+import org.contikios.cooja.plugins.Visualizer;
 
-import se.sics.cooja.radiomediums.AbstractRadioMedium;
-import se.sics.cooja.radiomediums.DirectedGraphMedium;
-import se.sics.cooja.radiomediums.DGRMDestinationRadio;
-import se.sics.cooja.radiomediums.DestinationRadio;
+import org.contikios.cooja.radiomediums.AbstractRadioMedium;
+import org.contikios.cooja.radiomediums.DirectedGraphMedium;
+import org.contikios.cooja.radiomediums.DGRMDestinationRadio;
+import org.contikios.cooja.radiomediums.DestinationRadio;
 
 /**
  * v2.7
- * The Terrain-based Line Of Sight medium uses terrain data from the SRTM 
+ * The Terrain-based Line Of Sight medium uses terrain data from the SRTM
  * to determine which nodes have line of sight with each other.
  *
  * The model is built on top of UDGM and therefore uses the same transmission, interference,
  * signal strength, and success ratios.
  *
- * TerrainLOS uses a viewshed algorithm developed by Wang, Robinson, and White in 
+ * TerrainLOS uses a viewshed algorithm developed by Wang, Robinson, and White in
  * their paper from 2000 in Photogrammetric Engineering and Remote Sensing Volume 66 Issue 1,
- * titled "Generating viewsheds without using sightlines". The algorithm is used when 
+ * titled "Generating viewsheds without using sightlines". The algorithm is used when
  * forming the Directed Graph Medium. Only motes that are within transmission distance
  * and have line of sight are added to the DGRM.
  *
@@ -79,24 +79,24 @@ import se.sics.cooja.radiomediums.DestinationRadio;
 @ClassDescription("TerrainLOS Radio Medium")
 public class TerrainLOSMedium extends AbstractRadioMedium {
   private static Logger logger = Logger.getLogger(TerrainLOSMedium.class);
-  
+
   /* Success ratio of TX. If this fails, no radios receive the packet */
-  public double SUCCESS_RATIO_TX = 1.0; 
-  /* Success ratio of RX. If this fails, 
+  public double SUCCESS_RATIO_TX = 1.0;
+  /* Success ratio of RX. If this fails,
    * the single affected receiver does not receive the packet */
-  public double SUCCESS_RATIO_RX = 1.0; 
+  public double SUCCESS_RATIO_RX = 1.0;
   /* Transmission range. */
-  public double TRANSMITTING_RANGE = 50; 
+  public double TRANSMITTING_RANGE = 50;
   /* Interference range. Ignored if below transmission range. */
-  public double INTERFERENCE_RANGE = 100; 
+  public double INTERFERENCE_RANGE = 100;
   /* If true, outputs the directed acyclic graph f the network to the working directory. */
   public boolean OUTPUT_DAG = false;
-  
+
   public DirectedGraphMedium dgrm;
   private Random random = null;
 
-  /* By default use 
-   * TERRAIN_FILEPATH = "", EAST_WIDTH = 100, SOUTH_WIDTH = 100, EAST_OFFSET = 0, 
+  /* By default use
+   * TERRAIN_FILEPATH = "", EAST_WIDTH = 100, SOUTH_WIDTH = 100, EAST_OFFSET = 0,
    * SOUTH_OFFSET = 0
    */
   public Terrain map = new Terrain("", 100, 100, 0, 0);
@@ -107,14 +107,14 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
     dgrm = new DirectedGraphMedium() {
       protected void analyzeEdges() {
         /* Create edges according to line of sight.
-         * XXX May be slow for mobile networks 
+         * XXX May be slow for mobile networks
          */
         clearEdges();
         for (Radio source: TerrainLOSMedium.this.getRegisteredRadios()) {
           Position sourcePos = source.getPosition();
           /* Caculate the viewshed for the source. */
           map.calculateLOS(
-              map.convertLocToCord((int) sourcePos.getXCoordinate()), 
+              map.convertLocToCord((int) sourcePos.getXCoordinate()),
               map.convertLocToCord((int) sourcePos.getYCoordinate()));
           for (Radio dest: TerrainLOSMedium.this.getRegisteredRadios()) {
             Position destPos = dest.getPosition();
@@ -123,18 +123,18 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
               continue;
             }
             double distance = sourcePos.getDistanceTo(destPos);
-            
+
             if (distance < Math.max(TRANSMITTING_RANGE, INTERFERENCE_RANGE)) {
               /* Add potential destination if there is line of sight. */
               if(map.isThereLOS(
-                    map.convertLocToCord((int) destPos.getXCoordinate()), 
+                    map.convertLocToCord((int) destPos.getXCoordinate()),
                     map.convertLocToCord((int) destPos.getYCoordinate()))) {
                 addEdge(
-                    new DirectedGraphMedium.Edge(source, 
+                    new DirectedGraphMedium.Edge(source,
                         new DGRMDestinationRadio(dest)));
               }
             }
-            
+
           }
         }
         super.analyzeEdges();
@@ -146,7 +146,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
             PrintWriter pr = new PrintWriter("dag.xml");
             pr.write("<root>\n");
             for (Element e: dgrm.getConfigXML()) {
-              pr.write(output.outputString(e) + "\n"); 
+              pr.write(output.outputString(e) + "\n");
             }
             pr.write("</root>\n");
             pr.close();
@@ -162,7 +162,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
     };
 
     /* Register as position observer.
-     * If any positions change, re-analyze potential receivers. 
+     * If any positions change, re-analyze potential receivers.
      */
     final Observer positionObserver = new Observer() {
       public void update(Observable o, Object arg) {
@@ -191,10 +191,10 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
 
   public void removed() {
   	super.removed();
-  	
+
 		Visualizer.unregisterVisualizerSkin(TerrainLOSVisualizerSkin.class);
   }
-  
+
   public void setTxRange(double r) {
     TRANSMITTING_RANGE = r;
     dgrm.requestEdgeAnalysis();
@@ -209,7 +209,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
     map.TERRAIN_FILEPATH = fp;
     map.configureMap();
   }
-  
+
   public void setEastWidth(int w) {
     map.EAST_WIDTH = w;
     map.configureMap();
@@ -238,17 +238,17 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
     RadioConnection newConnection = new RadioConnection(sender);
 
     /* Fail radio transmission randomly - no radios will hear this transmission */
-    if (getTxSuccessProbability(sender) < 1.0 && 
+    if (getTxSuccessProbability(sender) < 1.0 &&
         random.nextDouble() > getTxSuccessProbability(sender)) {
       return newConnection;
     }
 
     /* Calculate ranges: grows with radio output power */
     double moteTransmissionRange = TRANSMITTING_RANGE
-    * ((double) sender.getCurrentOutputPowerIndicator() / 
+    * ((double) sender.getCurrentOutputPowerIndicator() /
       (double) sender.getOutputPowerIndicatorMax());
     double moteInterferenceRange = INTERFERENCE_RANGE
-    * ((double) sender.getCurrentOutputPowerIndicator() / 
+    * ((double) sender.getCurrentOutputPowerIndicator() /
       (double) sender.getOutputPowerIndicatorMax());
 
     /* Get all potential destination radios */
@@ -262,7 +262,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
     for (DestinationRadio dest: potentialDestinations) {
       Radio recv = dest.radio;
 
-      /* Fail if radios are on different (but configured) channels */ 
+      /* Fail if radios are on different (but configured) channels */
       if (sender.getChannel() >= 0 &&
           recv.getChannel() >= 0 &&
           sender.getChannel() != recv.getChannel()) {
@@ -270,18 +270,18 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
         /* Add the connection in a dormant state;
          * it will be activated later when the radio will be
          * turned on and switched to the right channel. This behavior
-         * is consistent with the case when receiver is turned off. 
+         * is consistent with the case when receiver is turned off.
          */
         newConnection.addInterfered(recv);
 
         continue;
       }
       Position recvPos = recv.getPosition();
-      
+
       /* Remnant of code from UDGM */
       /* Fail if radio is turned off */
 //      if (!recv.isReceiverOn()) {
-//        /* Special case: allow connection if source is Contiki radio, 
+//        /* Special case: allow connection if source is Contiki radio,
 //         * and destination is something else (byte radio).
 //         * Allows cross-level communication with power-saving MACs. */
 //        if (sender instanceof ContikiRadio &&
@@ -331,7 +331,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
 
     return newConnection;
   }
-  
+
   public double getSuccessProbability(Radio source, Radio dest) {
   	return getTxSuccessProbability(source) * getRxSuccessProbability(source, dest);
   }
@@ -340,20 +340,20 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
   }
   public double getRxSuccessProbability(Radio source, Radio dest) {
     /* Get all potential destination radios */
-    DestinationRadio[] potentialDestinations = 
+    DestinationRadio[] potentialDestinations =
       dgrm.getPotentialDestinations(source);
     if (potentialDestinations == null) {
       return 0.0;
     }
 
-    /* Loop through all potential destinations. 
+    /* Loop through all potential destinations.
      * If dest is a potential destination calculate the percentage.
      */
     boolean validDest = false;
     for (DestinationRadio potentialDest: potentialDestinations) {
       if(potentialDest.radio == dest) {
-        validDest = true; 
-      } 
+        validDest = true;
+      }
     }
 
     if(!validDest) {
@@ -362,8 +362,8 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
 
     double distance = source.getPosition().getDistanceTo(dest.getPosition());
     double distanceSquared = Math.pow(distance,2.0);
-    double distanceMax = TRANSMITTING_RANGE * 
-      ((double) source.getCurrentOutputPowerIndicator() / 
+    double distanceMax = TRANSMITTING_RANGE *
+      ((double) source.getCurrentOutputPowerIndicator() /
       (double) source.getOutputPowerIndicatorMax());
     if (distanceMax == 0.0) {
       return 0.0;
@@ -373,12 +373,12 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
     if (ratio > 1.0) {
     	return 0.0;
     }
-    return 1.0 - ratio*(1.0-SUCCESS_RATIO_RX); 
+    return 1.0 - ratio*(1.0-SUCCESS_RATIO_RX);
   }
 
   public void updateSignalStrengths() {
     /* Override: uses distance as signal strength factor */
-    
+
     /* Reset signal strengths */
     for (Radio radio : getRegisteredRadios()) {
       //radio.setCurrentSignalStrength(getBaseRssi(radio));
@@ -401,7 +401,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
         double dist = conn.getSource().getPosition().getDistanceTo(dstRadio.getPosition());
 
         double maxTxDist = TRANSMITTING_RANGE
-          * ((double) conn.getSource().getCurrentOutputPowerIndicator() / 
+          * ((double) conn.getSource().getCurrentOutputPowerIndicator() /
           (double) conn.getSource().getOutputPowerIndicatorMax());
         double distFactor = dist/maxTxDist;
 
@@ -424,7 +424,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
         double dist = conn.getSource().getPosition().getDistanceTo(intfRadio.getPosition());
 
         double maxTxDist = TRANSMITTING_RANGE
-          * ((double) conn.getSource().getCurrentOutputPowerIndicator() / 
+          * ((double) conn.getSource().getCurrentOutputPowerIndicator() /
           (double) conn.getSource().getOutputPowerIndicatorMax());
         double distFactor = dist/maxTxDist;
 
@@ -472,7 +472,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
     element = new Element("success_ratio_rx");
     element.setText("" + SUCCESS_RATIO_RX);
     config.add(element);
-    
+
     /* Terrain filepath */
     element = new Element("terrain_filepath");
     element.setText("" + map.TERRAIN_FILEPATH);
@@ -495,12 +495,12 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
 
     /* Border height offset */
     element = new Element("south_offset");
-    element.setText("" + map.SOUTH_OFFSET); 
+    element.setText("" + map.SOUTH_OFFSET);
     config.add(element);
-    
+
     /* If medium is outputting the DAG. */
     element = new Element("output_dag");
-    element.setText(Boolean.toString(OUTPUT_DAG)); 
+    element.setText(Boolean.toString(OUTPUT_DAG));
     config.add(element);
 
     return config;
@@ -530,7 +530,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
       if (element.getName().equals("success_ratio_rx")) {
         SUCCESS_RATIO_RX = Double.parseDouble(element.getText());
       }
-      
+
       if(element.getName().equals("terrain_filepath")) {
         map.TERRAIN_FILEPATH = element.getText();
       }
@@ -550,12 +550,12 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
       if(element.getName().equals("south_offset")) {
         map.SOUTH_OFFSET = Integer.parseInt(element.getText());
       }
-      
+
       if(element.getName().equals("output_dag")) {
         OUTPUT_DAG = Boolean.parseBoolean(element.getText());
       }
 
-      map.configureMap(); 
+      map.configureMap();
       dgrm.requestEdgeAnalysis();
     }
     return true;
@@ -577,28 +577,28 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
      */
     private int HGTWIDTH = 3600;
     private int HGTHEIGHT = 3600;
-  
+
     /* The filepath of the terrain file. If empty a well terrain will be
-     * used instead. 
+     * used instead.
      */
     public String TERRAIN_FILEPATH = "";
-    /* The width (degrees) extending to the East TerrainLOS 
-     * uses of the terrain file. 
+    /* The width (degrees) extending to the East TerrainLOS
+     * uses of the terrain file.
      */
     public int EAST_WIDTH = 100;
-    /* The width (degrees) extending to the South TerrainLOS 
-     * uses of the terrain file. 
+    /* The width (degrees) extending to the South TerrainLOS
+     * uses of the terrain file.
      */
     public int SOUTH_WIDTH = 100;
-    /* The offset (degrees( to the East TerrainLOS will start 
-     * reading the terrain file. 
+    /* The offset (degrees( to the East TerrainLOS will start
+     * reading the terrain file.
      */
     public int EAST_OFFSET = 0;
-    /* The offset (degrees) to the South TerrainLOS will start 
-     * reading the terrain file. 
+    /* The offset (degrees) to the South TerrainLOS will start
+     * reading the terrain file.
      */
     public int SOUTH_OFFSET = 0;
-  
+
     /* A new terrain takes in a filepath, East width, South width,
      * East offset, and South Offset. If filepath is "" then a synthetic
      * well terrain is used instead.
@@ -612,14 +612,14 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
 
       configureMap();
     }
-   
+
     /* Configures the map using the current set configurations */
     public void configureMap() {
       /* Error Checking */
-      if(EAST_WIDTH < 0 || SOUTH_WIDTH < 0 || 
+      if(EAST_WIDTH < 0 || SOUTH_WIDTH < 0 ||
          EAST_OFFSET < 0 || SOUTH_OFFSET < 0) {
         logger.error("All widths and offsets must be greater than or equal to 0" +
-                     " EAST_WIDTH: " + EAST_WIDTH + "SOUTH_WIDTH: " + SOUTH_WIDTH +  
+                     " EAST_WIDTH: " + EAST_WIDTH + "SOUTH_WIDTH: " + SOUTH_WIDTH +
                      "\nEAST_OFFSET: " + EAST_OFFSET + " SOUTH_OFFSET: " + SOUTH_OFFSET);
       }
       if((EAST_WIDTH + EAST_OFFSET) > HGTWIDTH) {
@@ -630,22 +630,22 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
         logger.error("South width plus South offset must be less than 3600" +
                      "\nSOUTH_WIDTH: " + SOUTH_WIDTH + " SOUTH_OFFSET: " + SOUTH_OFFSET);
       }
-     
+
       /* TODO: Why plus 1? */
       h = new double[EAST_WIDTH][SOUTH_WIDTH];
       los = new double[EAST_WIDTH][SOUTH_WIDTH];
-      
+
       byte buffer;
       /* Set these as the lowest respective possible values. Each height is a signed
        * two byte value, so the possbile range is -32767 to 32767. TerrainLOS currently
        * only supports positive heights so the range is 0 to 32767. */
       min = 32768.0;
       max = -1.0;
-      
+
       if(TERRAIN_FILEPATH != "") {
         try {
           FileInputStream inputStream = new FileInputStream(TERRAIN_FILEPATH);
-  
+
           int skip_rows = 3601 - SOUTH_WIDTH - SOUTH_OFFSET;
           int skip_cols = 3601 - EAST_WIDTH - EAST_OFFSET;
           int msb;
@@ -653,17 +653,17 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
           int xi;
           int yi;
           double elevation;
-  
+
           inputStream.skip(SOUTH_OFFSET*2*3601);
           yi = 0;
           for(int mapY = SOUTH_OFFSET; mapY < SOUTH_WIDTH + SOUTH_OFFSET; mapY++) {
             inputStream.skip(EAST_OFFSET*2);
             xi = 0;
-            for(int mapX = EAST_OFFSET; mapX < EAST_WIDTH + EAST_OFFSET; mapX++) { 
+            for(int mapX = EAST_OFFSET; mapX < EAST_WIDTH + EAST_OFFSET; mapX++) {
               msb = inputStream.read();
               lsb = inputStream.read();
               /* By default each byte is treated as signed, so convert back to the
-               * unisnged value if negative. 
+               * unisnged value if negative.
                */
               if(msb < 0) msb += 256;
               if(lsb < 0) lsb += 256;
@@ -675,7 +675,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
                 elevation = 0;
               }
               if(max < ((double) elevation)) {
-                max = (double) elevation; 
+                max = (double) elevation;
               }
               if(min > ((double) elevation)) {
                 min = (double) elevation;
@@ -686,17 +686,17 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
             yi++;
           }
           inputStream.skip(skip_rows*2*3601);
-            
+
           int eof = inputStream.read();
           if(eof != -1) {
-            logger.error("Error: Bad format for SRTM"); 
+            logger.error("Error: Bad format for SRTM");
           }
-  
+
           inputStream.close();
         }
         catch(FileNotFoundException ex) {
           logger.error(
-              "Unable to open file '" + 
+              "Unable to open file '" +
               TERRAIN_FILEPATH + "'");
         }
         catch(IOException ex) {
@@ -720,7 +720,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
             }
           }
         }
-      } 
+      }
     }
 
     private int twosComp(int val, int bits) {
@@ -729,7 +729,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
       }
       return val;
     }
-  
+
     private boolean inBounds(int x, int y) {
       /* Check inputs */
       if(x < 0 || y < 0)
@@ -737,54 +737,54 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
       else if(x >= EAST_WIDTH || y >= SOUTH_WIDTH)
         return false;
       /* Check source, it is possible that x and y
-       * are also the source, but it doesn't hurt to 
+       * are also the source, but it doesn't hurt to
        * check twice.
       */
       else if(srcX < 0 || srcY < 0)
         return false;
       else if(srcX >= EAST_WIDTH || srcY >= SOUTH_WIDTH)
         return false;
-      else 
+      else
         return true;
     }
-  
+
     public double getHeight(int x, int y) {
       return h[x][y];
     }
-  
+
     public int getSrcX() {
       return srcX;
     }
-    
+
     public int getSrcY() {
       return srcY;
     }
-  
+
     /* Calculates line of sight at position (x0, y0)
      * where x0 amd y0 are coordinates, not locations
      * Must be called after constructor
     */
     public void calculateLOS(int x0, int y0) {
-  
+
       srcX = x0;
       srcY = y0;
-      
+
       double x0f = (double) srcX;
       double y0f = (double) srcY;
-     
+
       /* If the source is not in bounds exit
        * the default behavior is that motes outside the range
        * cannot talk to each other.
       */
       if(!inBounds(x0, y0))
         return;
-      
+
       /* Wang, Robinson, and White's Algorithm for finding line of sight */
       double z0 = h[x0][y0];
       /* Put source on a tripod
        * z0 += 5;
        */
-  
+
       int x1;
       int y1;
       int x2;
@@ -795,7 +795,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
       double yf;
       double visible = 0;
       double actual = 0;
-      
+
       for(int x = x0 - 1; x <= x0 + 1; x++) {
         for(int y = y0 - 1; y <= y0 + 1; y++) {
           if(x < 0 || x >= EAST_WIDTH || y < 0 || y >= SOUTH_WIDTH) {
@@ -804,7 +804,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
           los[x][y] = h[x][y];
         }
       }
-      
+
       /* Divide into 8 octets and 8 axes */
       /* E */
       for(int x = x0 + 2; x < EAST_WIDTH; x++) {
@@ -897,7 +897,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
           z2 = los[x2][y2];
           xf = (double) x;
           yf = (double) y;
-          visible = (z1 - z0)*((yf - y0f)/(xf - x0f - 1)) 
+          visible = (z1 - z0)*((yf - y0f)/(xf - x0f - 1))
                     + (z2 - z0)*((xf - x0f - (yf - y0f))/(xf - x0f - 1)) + z0;
           actual = h[x][y];
           los[x][y] = (visible > actual) ? visible : actual;
@@ -914,8 +914,8 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
           z2 = los[x2][y2];
           xf = (double) x;
           yf = (double) y;
-          visible = (z1 - z0)*((xf - x0f)/(yf - y0f - 1)) 
-                    + (z2 - z0)*((yf - y0f - (xf - x0f))/(yf - y0f - 1)) + z0; 
+          visible = (z1 - z0)*((xf - x0f)/(yf - y0f - 1))
+                    + (z2 - z0)*((yf - y0f - (xf - x0f))/(yf - y0f - 1)) + z0;
           actual = h[x][y];
           los[x][y] = (visible > actual) ? visible : actual;
         }
@@ -931,7 +931,7 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
           z2 = los[x2][y2];
           xf = (double) x;
           yf = (double) y;
-          visible = (z1 - z0)*(-(xf - x0f)/(yf - y0f - 1)) 
+          visible = (z1 - z0)*(-(xf - x0f)/(yf - y0f - 1))
                     + (z2 - z0)*((xf - x0f + yf - y0f)/(yf - y0f - 1)) + z0;
           actual = h[x][y];
           los[x][y] = (visible > actual) ? visible : actual;
@@ -1023,33 +1023,33 @@ public class TerrainLOSMedium extends AbstractRadioMedium {
         }
       }
     }
-  
+
     public int convertLocToCord(int loc) {
       int cord;
-  
+
       cord = loc / 33;
-  
+
       return cord;
     }
-  
+
     /* Using the srcX and srcY location determines whether the given destination
      * is in LOS, where destX and destY are coordinates
     */
     public boolean isThereLOS(int dst_x, int dst_y) {
-    
+
       /* If the destination or source is not in bounds
-       * then the default behavour is that motes cannot 
+       * then the default behavour is that motes cannot
        * talk to each other.
       */
       if(!inBounds(dst_x, dst_y))
         return false;
-  
+
       if(h[dst_x][dst_y] >= los[dst_x][dst_y])
         return true;
       else
         return false;
     }
-   
+
   }
 
 }

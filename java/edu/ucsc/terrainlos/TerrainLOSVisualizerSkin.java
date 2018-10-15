@@ -28,7 +28,7 @@
  *
  */
 package edu.ucsc.terrainlos;
-import edu.ucsc.terrainlos.TerrainLOSMedium; 
+import edu.ucsc.terrainlos.TerrainLOSMedium;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -64,15 +64,15 @@ import javax.swing.event.InternalFrameEvent;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.ClassDescription;
-import se.sics.cooja.Mote;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.SupportedArguments;
-import se.sics.cooja.interfaces.Position;
-import se.sics.cooja.interfaces.Radio;
-import se.sics.cooja.plugins.Visualizer;
-import se.sics.cooja.plugins.Visualizer.SimulationMenuAction;
-import se.sics.cooja.plugins.VisualizerSkin;
+import org.contikios.cooja.ClassDescription;
+import org.contikios.cooja.Mote;
+import org.contikios.cooja.Simulation;
+import org.contikios.cooja.SupportedArguments;
+import org.contikios.cooja.interfaces.Position;
+import org.contikios.cooja.interfaces.Radio;
+import org.contikios.cooja.plugins.Visualizer;
+import org.contikios.cooja.plugins.Visualizer.SimulationMenuAction;
+import org.contikios.cooja.plugins.VisualizerSkin;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -88,9 +88,9 @@ import java.io.File;
  * Allows a user to change the collective TX/interference ranges, the TX/RX
  * success ratio, terrain filepath, east/south width, east/south offset, and
  * whether to output a dag.
- * 
+ *
  * Also displays the active terrain being used as a gray-scale map, white is
- * the highest elevation and black is the lowest elevation, and the visible 
+ * the highest elevation and black is the lowest elevation, and the visible
  * locations from the highlighted mote.
  *
  * To also see radio traffic, this skin can be combined with {@link
@@ -117,16 +117,16 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
   private TerrainLOSMedium radioMedium = null;
 
   private JInternalFrame rrFrame;
-  private Box ratioRX, ratioTX, rangeTX, rangeINT, eastWidth, southWidth, eastOffset, southOffset, 
+  private Box ratioRX, ratioTX, rangeTX, rangeINT, eastWidth, southWidth, eastOffset, southOffset,
           outputDAG, terrainFP;
- 
+
   /* Used to change the terrain filepath */
   private String filepath = "";
 
   @Override
   public void setActive(Simulation simulation, Visualizer vis) {
     if (!(simulation.getRadioMedium() instanceof TerrainLOSMedium)) {
-      logger.fatal("Cannot activate TerrainLOSMedium skin for unknown radio medium: " + 
+      logger.fatal("Cannot activate TerrainLOSMedium skin for unknown radio medium: " +
           simulation.getRadioMedium());
       return;
     }
@@ -182,41 +182,41 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
     southOffsetModel.setMaximum(new Double(3600.0));
 
     JSpinner.NumberEditor editor;
-    
+
     final JSpinner txRangeSpinner = new JSpinner(transmissionModel);
     editor = new JSpinner.NumberEditor(txRangeSpinner, "0m");
     txRangeSpinner.setEditor(editor);
-    
+
     final JSpinner interferenceRangeSpinner = new JSpinner(interferenceModel);
     editor = new JSpinner.NumberEditor(interferenceRangeSpinner, "0m");
     interferenceRangeSpinner.setEditor(editor);
-    
+
     final JSpinner successRatioTxSpinner = new JSpinner(successRatioTxModel);
     editor = new JSpinner.NumberEditor(successRatioTxSpinner, "0.0%");
     successRatioTxSpinner.setEditor(editor);
-    
+
     final JSpinner successRatioRxSpinner = new JSpinner(successRatioRxModel);
     editor = new JSpinner.NumberEditor(successRatioRxSpinner, "0.0%");
     successRatioRxSpinner.setEditor(editor);
-    
+
     final JSpinner eastWidthSpinner = new JSpinner(eastWidthModel);
     editor = new JSpinner.NumberEditor(eastWidthSpinner, "0deg");
     eastWidthSpinner.setEditor(editor);
-    
+
     final JSpinner southWidthSpinner = new JSpinner(southWidthModel);
     editor = new JSpinner.NumberEditor(southWidthSpinner, "0deg");
     southWidthSpinner.setEditor(editor);
-    
+
     final JSpinner eastOffsetSpinner = new JSpinner(eastOffsetModel);
     editor = new JSpinner.NumberEditor(eastOffsetSpinner, "0deg");
     eastOffsetSpinner.setEditor(editor);
-    
+
     final JSpinner southOffsetSpinner = new JSpinner(southOffsetModel);
     editor = new JSpinner.NumberEditor(southOffsetSpinner, "0deg");
     southOffsetSpinner.setEditor(editor);
 
     final JCheckBox outputDagVar = new JCheckBox("true");
-		
+
     JButton terrainFPButton = new JButton("Select File");
     terrainFPButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ae) {
@@ -234,7 +234,7 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
     ((JSpinner.DefaultEditor) successRatioTxSpinner.getEditor()).getTextField().setColumns(5);
     ((JSpinner.DefaultEditor) successRatioRxSpinner.getEditor()).getTextField().setColumns(5);
     ((JSpinner.DefaultEditor) eastWidthSpinner.getEditor()).getTextField().setColumns(5);
-    ((JSpinner.DefaultEditor) southWidthSpinner.getEditor()).getTextField().setColumns(5);	
+    ((JSpinner.DefaultEditor) southWidthSpinner.getEditor()).getTextField().setColumns(5);
     ((JSpinner.DefaultEditor) eastOffsetSpinner.getEditor()).getTextField().setColumns(5);
     ((JSpinner.DefaultEditor) southOffsetSpinner.getEditor()).getTextField().setColumns(5);
 
@@ -310,7 +310,7 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
         visualizer.repaint();
       }
     });
-	
+
     southOffsetSpinner.addChangeListener(new ChangeListener() {
       @Override
       public void stateChanged(ChangeEvent e) {
@@ -321,11 +321,11 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
     });
 
     outputDagVar.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {         
+      public void itemStateChanged(ItemEvent e) {
         if (e.getStateChange()==1){
           radioMedium.setOutputDAG(true);
-        }	
-      }           
+        }
+      }
     });
 
     /* Register menu actions */
@@ -376,7 +376,7 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
     terrainFP.add(new JLabel("Terrain filepath:"));
     terrainFP.add(Box.createHorizontalStrut(5));
     terrainFP.add(terrainFPButton);
-		
+
     rangeTX.setVisible(false);
     rangeINT.setVisible(false);
     ratioTX.setVisible(false);
@@ -442,41 +442,39 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
   public Color[] getColorOf(Mote mote) {
     return null;
   }
-  
+
   private Color heightToColor(double height) {
     double colorVal = 255.0*((height - this.radioMedium.map.min)/
         (this.radioMedium.map.max - this.radioMedium.map.min));
-    
+
     if(colorVal > 255.0)
       colorVal = 255.0;
-    if(colorVal < 0) 
+    if(colorVal < 0)
       colorVal = 0;
-    
+
     return new Color((int) colorVal, (int) colorVal, (int) colorVal, 100);
   }
 
   private double distance(double srcX, double srcY, double destX, double destY) {
     return Math.hypot(srcX - destX, srcY - destY);
   }
-  
+
   @Override
   public void paintBeforeMotes(Graphics g) {
-    //Set<Mote> selectedMotes = visualizer.getSelectedMotes();
-    Mote selectedMote = visualizer.getSelectedMote();
-    if (simulation == null || selectedMote == null
-      || selectedMote.getInterfaces().getRadio() == null) {
+    Set<Mote> selectedMotes = visualizer.getSelectedMotes();
+    if (simulation == null || selectedMotes == null) {
       return;
     }
-		
+
     Area intRangeArea = new Area();
     Area intRangeMaxArea = new Area();
     Area trxRangeArea = new Area();
     Area trxRangeMaxArea = new Area();
 
-    //for (Mote selectedMote : selectedMotes) {
-    //  if (selectedMote.getInterfaces().getRadio() == null) {
-    //    continue;
-    //  }
+    for (Mote selectedMote : selectedMotes) {
+      if (selectedMote.getInterfaces().getRadio() == null) {
+        continue;
+      }
 
       /* Paint transmission and interference range for selected mote */
       Position motePos = selectedMote.getInterfaces().getPosition();
@@ -498,19 +496,19 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
 
       Point translatedZero = visualizer.transformPositionToPixel(0.0, 0.0, 0.0);
       Point translatedInterference
-              = visualizer.transformPositionToPixel(moteInterferenceRange, 
+              = visualizer.transformPositionToPixel(moteInterferenceRange,
                   moteInterferenceRange, 0.0);
       Point translatedTransmission
-              = visualizer.transformPositionToPixel(moteTransmissionRange, 
+              = visualizer.transformPositionToPixel(moteTransmissionRange,
                   moteTransmissionRange, 0.0);
       Point translatedInterferenceMax
-              = visualizer.transformPositionToPixel(radioMedium.INTERFERENCE_RANGE, 
+              = visualizer.transformPositionToPixel(radioMedium.INTERFERENCE_RANGE,
                   radioMedium.INTERFERENCE_RANGE, 0.0);
       Point translatedTransmissionMax
-              = visualizer.transformPositionToPixel(radioMedium.TRANSMITTING_RANGE, 
+              = visualizer.transformPositionToPixel(radioMedium.TRANSMITTING_RANGE,
                   radioMedium.TRANSMITTING_RANGE, 0.0);
       Point eastSouthPoint
-              = visualizer.transformPositionToPixel(radioMedium.map.EAST_WIDTH*33, 
+              = visualizer.transformPositionToPixel(radioMedium.map.EAST_WIDTH*33,
                   radioMedium.map.SOUTH_WIDTH*33, 0.0);
       Point degUnit = visualizer.transformPositionToPixel(33.0, 33.0, 0.0);
 
@@ -537,33 +535,33 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
            * The maximum height will be white, the minimum height will be black.
            */
           g.setColor(heightToColor(this.radioMedium.map.h[i][j]));
-          
+
           Point coordinate = visualizer.transformPositionToPixel(i*33, j*33, 0.0);
           /* Each index in map.h corresponds to 33m */
           g.drawRect(coordinate.x, coordinate.y, degUnit.x, degUnit.y);
           g.fillRect(coordinate.x, coordinate.y, degUnit.x, degUnit.y);
         }
-      }	
-      
+      }
+
       double moteX = motePos.getXCoordinate();
       double moteY = motePos.getYCoordinate();
 
       /* Draw the places visible by the selected mote */
       if(moteX > 0 &&  moteX < 34*this.radioMedium.map.EAST_WIDTH &&
           moteY > 0 &&  moteY < 34*this.radioMedium.map.SOUTH_WIDTH) {
-        
-        this.radioMedium.map.calculateLOS(this.radioMedium.map.convertLocToCord((int) moteX), 
+
+        this.radioMedium.map.calculateLOS(this.radioMedium.map.convertLocToCord((int) moteX),
                          this.radioMedium.map.convertLocToCord((int) moteY));
 
         for(int i = 0; i < this.radioMedium.map.EAST_WIDTH; i++) {
           for(int j = 0; j < this.radioMedium.map.SOUTH_WIDTH; j++) {
             if(distance(moteX, moteY, i*33, j*33) < Math.max(radioMedium.TRANSMITTING_RANGE,
                 radioMedium.INTERFERENCE_RANGE)) {
-              Point coordinate = 
+              Point coordinate =
                 visualizer.transformPositionToPixel(i*33, j*33, 0.0);
-           
+
               /* isThereLOS is based on meters, so we must multiply
-               * the cord (i, j) by 33 to convert from degrees. 
+               * the cord (i, j) by 33 to convert from degrees.
                */
               if(this.radioMedium.map.isThereLOS(i, j)) {
                 g.setColor(new Color(255, 220, 100, 80));
@@ -574,7 +572,7 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
             }
           }
         }
-      } 
+      }
 
       /* Interference range */
       intRangeArea.add(new Area(new Ellipse2D.Double(
@@ -603,7 +601,7 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
               2 * translatedTransmissionMax.x,
               2 * translatedTransmissionMax.y)));
 
-    //}
+    }
 
     Graphics2D g2d = (Graphics2D) g;
 
@@ -621,9 +619,9 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
     g.setColor(Color.BLACK);
 
     /* Print transmission success probabilities only if single mote is selected */
-    //if (selectedMotes.size() == 1) {
-    //  Mote selectedMote = selectedMotes.toArray(new Mote[0])[0];
-    //  Radio selectedRadio = selectedMote.getInterfaces().getRadio();
+    if (selectedMotes.size() == 1) {
+      Mote selectedMote = selectedMotes.toArray(new Mote[0])[0];
+      Radio selectedRadio = selectedMote.getInterfaces().getRadio();
       for (Mote m : simulation.getMotes()) {
         if (m == selectedMote) {
           continue;
@@ -639,7 +637,7 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
         int msgWidth = fm.stringWidth(msg);
         g.drawString(msg, pixel.x - msgWidth / 2, pixel.y + 2 * Visualizer.MOTE_RADIUS + 3);
       }
-    //}
+    }
 
   }
 
@@ -668,13 +666,13 @@ public class TerrainLOSVisualizerSkin implements VisualizerSkin {
           vskin.rangeTX.setVisible(true);
           vskin.rangeINT.setVisible(true);
           vskin.ratioTX.setVisible(true);
-          vskin.ratioRX.setVisible(true);	
+          vskin.ratioRX.setVisible(true);
           vskin.eastWidth.setVisible(true);
           vskin.southWidth.setVisible(true);
           vskin.eastOffset.setVisible(true);
           vskin.southOffset.setVisible(true);
           vskin.outputDAG.setVisible(true);
-          vskin.terrainFP.setVisible(true);	
+          vskin.terrainFP.setVisible(true);
           vskin.updateRatioRangeFrame();
         }
       }
